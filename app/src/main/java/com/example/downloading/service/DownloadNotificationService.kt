@@ -5,69 +5,78 @@ import android.content.Intent
 import android.os.Build
 import android.os.IBinder
 import androidx.core.app.NotificationCompat
-import com.example.downloading.DownloadActivity
 import com.example.downloading.R
 import com.example.downloading.base.GlobalConstants
-import java.util.*
-import kotlin.concurrent.schedule
 import android.app.NotificationManager
 import android.content.Context
-import androidx.localbroadcastmanager.content.LocalBroadcastManager
+import android.util.Log
 import com.example.downloading.model.Download
+import androidx.core.app.NotificationManagerCompat
+import com.example.downloading.ui.activity.DownloadActivity
 
 
 class DownloadNotificationService : Service() {
+
+    val context = Context.NOTIFICATION_SERVICE
+//    var notificationManager = NotificationManagerCompat.from(DownloadNotificationService::)
 
     override fun onBind(intent: Intent): IBinder? {
         return null
     }
 
-    private var notificationBuilder: NotificationCompat.Builder? = null
-    private var notificationManager: NotificationManager? = null
-    val context = this
-
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         createNotification()
+//
+//        notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+//
+//        notificationBuilder = NotificationCompat.Builder(this)
+//            .setSmallIcon(R.drawable.ic_launcher_foreground)
+//            .setContentTitle("Download")
+//            .setContentText("Downloading File")
+//            .setAutoCancel(true)
+//        notificationManager?.notify(0, notificationBuilder?.build())
+//
 
-        notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
 
-        notificationBuilder = NotificationCompat.Builder(this)
-            .setSmallIcon(R.drawable.ic_launcher_foreground)
+        val notificationIntent = Intent(this, DownloadActivity::class.java)
+        val pendingIntent = PendingIntent.getActivity(
+            this,
+            0, notificationIntent, 0
+        )
+        val progress = intent?.getIntExtra(GlobalConstants.PROGRESS_SERVICE,0)
+        Log.d(DownloadNotificationService::class.java.simpleName,progress.toString())
+
+        val progressMax = 100
+        val notification: NotificationCompat.Builder = NotificationCompat.Builder(this, GlobalConstants.CHANNEL_ID)
             .setContentTitle("Download")
-            .setContentText("Downloading File")
-            .setAutoCancel(true)
-        notificationManager?.notify(0, notificationBuilder?.build())
+            .setContentText("Download in progress ")
+            .setPriority(NotificationCompat.PRIORITY_LOW)
+            .setOnlyAlertOnce(true)
+            .setOngoing(true)
+            .setProgress(progressMax, 0, false)
+            .setSmallIcon(R.drawable.ic_launcher_foreground)
+            .setContentIntent(pendingIntent)
+        startForeground(1, notification.build())
 
+        Thread.sleep(2000)
+        for ( p in 0..progressMax step 25) {
+            notification.setProgress(progressMax, p, false)
+//            notificationManager.notify(1,notification.build())
+            startForeground(1, notification.build())
+            Thread.sleep(2000)
+        }
+        notification.setContentText("Download Finished")
+            .setProgress(0,0,false)
+            .setOngoing(false)
+        startForeground(1, notification.build())
 
+//        notificationManager.notify(1,notification.build())
+//        startForeground(1, notificationManager)
 
-        startForeground(0, notificationBuilder?.build())
+//        startForeground(0, notificationBuilder?.build())
         return START_NOT_STICKY
     }
 
-    fun sendNotification(download: Download){
-//        sendIntent(download)
-        notificationBuilder?.setProgress(100,download.proggress ?: 0,false)
-        notificationBuilder?.setContentText(String.format("Downloaded (%d/%d) MB",download.currentFileSize?:0
-            ,download.totalFileSize?:0))
-        notificationManager?.notify(0, notificationBuilder?.build())
-    }
-
-//    private fun sendIntent(download: Download) {
-//
-//        val intent =  Intent(GlobalConstants.MESSAGE_PROGRESS)
-//        intent.putExtra("download",download)
-//        LocalBroadcastManager.getInstance(context).sendBroadcast(intent)
-//
-//    }
-     fun onDownloadComplete(){
-        val download = Download()
-        download.proggress = 100
-//        sendIntent(download)
-        notificationManager?.cancel(0)
-        notificationBuilder?.setProgress(0,0,false)
-        notificationBuilder?.setContentText("File Downloaded")
-        notificationManager?.notify(0, notificationBuilder?.build())
-    }
 
     private fun createNotification() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -84,9 +93,5 @@ class DownloadNotificationService : Service() {
         }
     }
 
-    override fun onTaskRemoved(rootIntent: Intent?) {
-        notificationManager?.cancel(0)
-        super.onTaskRemoved(rootIntent)
-    }
 
 }

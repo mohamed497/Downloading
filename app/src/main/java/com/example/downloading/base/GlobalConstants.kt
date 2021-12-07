@@ -8,6 +8,7 @@ object GlobalConstants {
     const val BASE_URL = "https://drive.google.com"
     const val MESSAGE_PROGRESS = "message_progress"
     const val PROGRESS_WORK = "Progress"
+    const val PROGRESS_SERVICE = "Progress_service"
 
     //    const val URLFILE = "<YOUR_FILE_URI>"
 //    const val URLFILE = "https://static0.gamerantimages.com/wordpress/wp-content/uploads/2021/11/Arcane-Vi-1.jpg"

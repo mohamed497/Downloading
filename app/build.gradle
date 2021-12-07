@@ -35,28 +35,26 @@ android {
 
 dependencies {
 
-    implementation 'androidx.core:core-ktx:1.7.0'
-    implementation 'androidx.appcompat:appcompat:1.4.0'
-    implementation 'com.google.android.material:material:1.4.0'
-    implementation 'androidx.constraintlayout:constraintlayout:2.1.2'
-    testImplementation 'junit:junit:4.+'
-    androidTestImplementation 'androidx.test.ext:junit:1.1.3'
-    androidTestImplementation 'androidx.test.espresso:espresso-core:3.4.0'
-//    implementation("io.reactivex.rxjava3:rxkotlin:3.0.0")
-//    implementation "io.reactivex.rxjava2:rxkotlin:2.7.1"
+    implementation supportDependencies.coreKtx
+    implementation supportDependencies.junit
+    implementation supportDependencies.material
+    implementation supportDependencies.appCompat
+    implementation supportDependencies.constraintLayout
+    testImplementation supportDependencies.junit
+    androidTestImplementation supportDependencies.testJunit
+    androidTestImplementation supportDependencies.espressoCore
+    implementation supportDependencies.picasso
+    implementation supportDependencies.retrofit
+    implementation supportDependencies.retrofitAdapter
+    implementation supportDependencies.retrofitConverter
 
-    implementation "com.squareup.retrofit2:retrofit:$version_retrofit"
-    implementation "com.squareup.retrofit2:adapter-rxjava3:$version_retrofit"
-    implementation "com.squareup.retrofit2:converter-gson:$version_retrofit"
+    implementation supportDependencies.rxjava3Android
+    implementation supportDependencies.rxjava3Java
+    implementation supportDependencies.rxjava3Kotlin
 
-    implementation "io.reactivex.rxjava3:rxandroid:$version_rxjava"
-    implementation "io.reactivex.rxjava3:rxjava:$version_rxjava"
-    implementation "io.reactivex.rxjava3:rxkotlin:$version_rxjava"
+    implementation supportDependencies.workRuntime
+    implementation supportDependencies.rxWork
 
-    implementation 'androidx.work:work-runtime-ktx:2.7.1'
-    implementation "androidx.work:work-rxjava3:2.7.1"
 
-    implementation "com.squareup.okhttp3:logging-interceptor:$version_interceptor"
-//    implementation "com.squareup.retrofit2:adapter-rxjava2:$version_rxjava"
 
 }

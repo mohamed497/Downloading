@@ -1,8 +1,6 @@
-package com.example.downloading
+package com.example.downloading.ui.activity
 
 import android.Manifest
-import android.content.BroadcastReceiver
-import android.content.Context
 import android.content.Intent
 import android.os.Build
 import androidx.appcompat.app.AppCompatActivity
@@ -18,12 +16,10 @@ import com.example.downloading.service.DownloadNotificationService
 import com.example.downloading.worker.DownloadWorker
 import kotlinx.android.synthetic.main.activity_download.*
 import java.util.concurrent.TimeUnit
-import android.content.IntentFilter
 
-import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import com.example.downloading.base.GlobalConstants
-import com.example.downloading.model.Download
 import androidx.work.WorkInfo
+import com.example.downloading.R
 
 
 class DownloadActivity : AppCompatActivity() {
@@ -78,18 +74,15 @@ class DownloadActivity : AppCompatActivity() {
             .observe(this@DownloadActivity, Observer { work ->
                 work?.let {
                     if (work.state == WorkInfo.State.RUNNING) {
-                        val getProgress = work.progress.getInt(GlobalConstants.PROGRESS_WORK, -1)
+                        val getProgress = work.progress.getInt(GlobalConstants.PROGRESS_WORK, 1)
                         progress.progress = getProgress
 
                         Log.d(DownloadActivity::javaClass.name, "RUNNING")
                         loaderShow(true)
                         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                            startService(
-                                Intent(
-                                    applicationContext,
-                                    DownloadNotificationService::class.java
-                                )
-                            )
+                            val serviceIntent = Intent(this,DownloadNotificationService::class.java)
+                                        serviceIntent.putExtra(GlobalConstants.PROGRESS_SERVICE,getProgress)
+                            startForegroundService(serviceIntent)
                         }
 
                     } else

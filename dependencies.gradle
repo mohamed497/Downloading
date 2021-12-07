@@ -1,0 +1,37 @@
+ext {
+    libVersions = [
+            junit        : '4.+',
+            material     : '1.4.0',
+            googleSecrets: '0.4',
+            picasso      : '2.5.2',
+            retrofitVersion : '2.9.0',
+            rxVersion : '3.0.0' ,
+            work :'2.7.1',
+            androidx     : [
+                    coreKtx         : '1.7.0',
+                    appCompat       : '1.3.1',
+                    constraintLayout: '2.1.1',
+                    testJunit       : '1.1.3',
+                    espressoCore    : '3.4.0'
+            ]
+    ]
+    supportDependencies = [
+            junit           : "junit:junit:${libVersions.junit}",
+            material        : "com.google.android.material:material:${libVersions.material}",
+            coreKtx         : "androidx.core:core-ktx:${libVersions.androidx.coreKtx}",
+            appCompat       : "androidx.appcompat:appcompat:${libVersions.androidx.appCompat}",
+            constraintLayout: "androidx.constraintlayout:constraintlayout:${libVersions.androidx.constraintLayout}",
+            testJunit       : "androidx.test.ext:junit:${libVersions.androidx.testJunit}",
+            espressoCore    : "androidx.test.espresso:espresso-core:${libVersions.androidx.espressoCore}",
+            picasso         : "com.squareup.picasso:picasso:${libVersions.picasso}",
+            retrofit :  "com.squareup.retrofit2:retrofit:${libVersions.retrofitVersion}",
+            retrofitAdapter : "com.squareup.retrofit2:adapter-rxjava3:${libVersions.retrofitVersion}",
+            retrofitConverter : "com.squareup.retrofit2:converter-gson:${libVersions.retrofitVersion}",
+            rxjava3Android: "io.reactivex.rxjava3:rxandroid:${libVersions.rxVersion}",
+            rxjava3Java: "io.reactivex.rxjava3:rxjava:${libVersions.rxVersion}",
+            rxjava3Kotlin: "io.reactivex.rxjava3:rxkotlin:${libVersions.rxVersion}",
+            workRuntime : "androidx.work:work-runtime-ktx:${libVersions.work}",
+            rxWork: "androidx.work:work-rxjava3:${libVersions.work}",
+    ]
+}
+
