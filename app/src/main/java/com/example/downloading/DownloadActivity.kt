@@ -1,6 +1,8 @@
 package com.example.downloading
 
 import android.Manifest
+import android.content.BroadcastReceiver
+import android.content.Context
 import android.content.Intent
 import android.os.Build
 import androidx.appcompat.app.AppCompatActivity
@@ -12,13 +14,17 @@ import androidx.lifecycle.Observer
 import androidx.work.*
 import com.example.downloading.base.GlobalConstants.PERMISION_REQUEST
 import com.example.downloading.base.RunTimePermission
-import com.example.downloading.repository.DownloadingRepositoryImpl
-import com.example.downloading.service.DownloadService
+import com.example.downloading.service.DownloadNotificationService
 import com.example.downloading.worker.DownloadWorker
-import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers
-import io.reactivex.schedulers.Schedulers
 import kotlinx.android.synthetic.main.activity_download.*
 import java.util.concurrent.TimeUnit
+import android.content.IntentFilter
+
+import androidx.localbroadcastmanager.content.LocalBroadcastManager
+import com.example.downloading.base.GlobalConstants
+import com.example.downloading.model.Download
+import androidx.work.WorkInfo
+
 
 class DownloadActivity : AppCompatActivity() {
     private var runtimePermission: RunTimePermission = RunTimePermission(this)
@@ -26,10 +32,6 @@ class DownloadActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_download)
-
-//        val downloadRepo = DownloadingRepositoryImpl()
-//        downloadRepo.download().observeOn(AndroidSchedulers.mainThread())
-//        downloadRepo.download().subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread()).subscribe()
 
         btnStartDownloadWork.setOnClickListener { view ->
             when (view.id) {
@@ -53,6 +55,7 @@ class DownloadActivity : AppCompatActivity() {
 
             }
         }
+//        registerReceiver()
     }
 
     private fun StartOneTimeWorkManager() {
@@ -71,16 +74,20 @@ class DownloadActivity : AppCompatActivity() {
         workManager.enqueue(task)
         workManager.getWorkInfoByIdLiveData(task.id)
             .observe(this@DownloadActivity, Observer { work ->
-
                 work?.let {
                     if (work.state == WorkInfo.State.RUNNING) {
+                        val getProgress = work.progress.getInt("progress", -1)
+                        progress.progress = getProgress
+
                         Log.d(DownloadActivity::javaClass.name, "RUNNING")
                         loaderShow(true)
                         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                            startForegroundService(Intent(
-                                applicationContext,
-                                DownloadService::class.java
-                            ))
+                            startService(
+                                Intent(
+                                    applicationContext,
+                                    DownloadNotificationService::class.java
+                                )
+                            )
                         }
 
                     } else
@@ -117,7 +124,32 @@ class DownloadActivity : AppCompatActivity() {
     }
 
     override fun onPause() {
-        stopService(Intent(this, DownloadService::class.java))
+        stopService(Intent(this, DownloadNotificationService::class.java))
         super.onPause()
     }
+//    private fun registerReceiver() {
+//        val bManager = LocalBroadcastManager.getInstance(this)
+//        val intentFilter = IntentFilter()
+//        intentFilter.addAction(GlobalConstants.MESSAGE_PROGRESS)
+//        bManager.registerReceiver(broadcastReceiver, intentFilter)
+//    }
+//    private val broadcastReceiver: BroadcastReceiver = object : BroadcastReceiver() {
+//        override fun onReceive(context: Context?, intent: Intent) {
+//            if (intent.action == GlobalConstants.MESSAGE_PROGRESS) {
+//                val download: Download? = intent.getParcelableExtra("download")
+//                progress.setProgress(download?.proggress?:0)
+//                if (download?.proggress === 100) {
+//                    progress_text.text =("File Download Complete")
+//                } else {
+//                    progress_text.text =
+//                        String.format(
+//                            "Downloaded (%d/%d) MB",
+//                            download?.currentFileSize,
+//                            download?.totalFileSize
+//                        )
+//
+//                }
+//            }
+//        }
+//    }
 }

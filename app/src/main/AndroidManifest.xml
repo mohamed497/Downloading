@@ -15,7 +15,7 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.Downloading">
         <service
-            android:name=".service.DownloadService"
+            android:name=".service.DownloadNotificationService"
             android:enabled="true"
             android:exported="true"></service>
 

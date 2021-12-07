@@ -1,8 +1,7 @@
 package com.example.downloading.repository
 
 import com.example.downloading.repository.remote.DownloadRemoteRepository
-import io.reactivex.Observable
-import io.reactivex.Single
+import io.reactivex.rxjava3.core.Observable
 import okhttp3.ResponseBody
 import retrofit2.Response
 
