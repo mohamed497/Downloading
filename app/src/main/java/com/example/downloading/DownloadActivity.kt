@@ -33,6 +33,9 @@ class DownloadActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_download)
 
+        startDownloadBtn()
+    }
+    private fun startDownloadBtn(){
         btnStartDownloadWork.setOnClickListener { view ->
             when (view.id) {
                 R.id.btnStartDownloadWork -> {
@@ -55,7 +58,6 @@ class DownloadActivity : AppCompatActivity() {
 
             }
         }
-//        registerReceiver()
     }
 
     private fun StartOneTimeWorkManager() {
@@ -76,7 +78,7 @@ class DownloadActivity : AppCompatActivity() {
             .observe(this@DownloadActivity, Observer { work ->
                 work?.let {
                     if (work.state == WorkInfo.State.RUNNING) {
-                        val getProgress = work.progress.getInt("progress", -1)
+                        val getProgress = work.progress.getInt(GlobalConstants.PROGRESS_WORK, -1)
                         progress.progress = getProgress
 
                         Log.d(DownloadActivity::javaClass.name, "RUNNING")
@@ -127,29 +129,5 @@ class DownloadActivity : AppCompatActivity() {
         stopService(Intent(this, DownloadNotificationService::class.java))
         super.onPause()
     }
-//    private fun registerReceiver() {
-//        val bManager = LocalBroadcastManager.getInstance(this)
-//        val intentFilter = IntentFilter()
-//        intentFilter.addAction(GlobalConstants.MESSAGE_PROGRESS)
-//        bManager.registerReceiver(broadcastReceiver, intentFilter)
-//    }
-//    private val broadcastReceiver: BroadcastReceiver = object : BroadcastReceiver() {
-//        override fun onReceive(context: Context?, intent: Intent) {
-//            if (intent.action == GlobalConstants.MESSAGE_PROGRESS) {
-//                val download: Download? = intent.getParcelableExtra("download")
-//                progress.setProgress(download?.proggress?:0)
-//                if (download?.proggress === 100) {
-//                    progress_text.text =("File Download Complete")
-//                } else {
-//                    progress_text.text =
-//                        String.format(
-//                            "Downloaded (%d/%d) MB",
-//                            download?.currentFileSize,
-//                            download?.totalFileSize
-//                        )
-//
-//                }
-//            }
-//        }
-//    }
+
 }
