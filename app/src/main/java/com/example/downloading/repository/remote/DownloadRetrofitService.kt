@@ -11,8 +11,8 @@ import retrofit2.http.GET
 import retrofit2.http.Streaming
 
 interface DownloadRetrofitService {
-//    @GET("/download?file=ODM1NTY4ZDFkYzU1ZTA5ZWEzYTY1ODU0ZDBlNmRmNGFlNTZhZWMyNjJmZDFmYzMxNDNlZmUzMDM0MmRiZGYyZl8xNDRwLm1wNOKYr3kybWV0YS5jb20tMSBzZWMgVklERU_imK8xNDRw")
-    @GET("/uc?export=download&id=1IQNB5lNU7i2M_R0chJCk64XlvTh8QmKZ")
+//    @GET("/uc?export=download&id=1IQNB5lNU7i2M_R0chJCk64XlvTh8QmKZ")
+    @GET("/uploads/2017/04/file_example_MP4_640_3MG.mp4")
     @Streaming
     fun download(): Observable<Response<ResponseBody>>
 }

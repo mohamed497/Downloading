@@ -45,11 +45,13 @@ fun downloadFile(body: ResponseBody?) {
     val data = ByteArray(1024)
     val fileSize = body?.contentLength()
     val bis: InputStream = BufferedInputStream(body?.byteStream(), 1024 * 8)
-    val outputFile = File(
-        Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS),
-        "file.zip"
-    )
-    val output: OutputStream = FileOutputStream(outputFile)
+//    val outputFile = File(
+//        Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS),
+//        "file.zip"
+//    )
+
+//    val output: OutputStream = FileOutputStream(outputFile)
+    val output: OutputStream = FileOutputStream("/sdcard/myfile_${System.currentTimeMillis()}.mp4")
     var total = 0
     val startTime = System.currentTimeMillis()
     var timeCount = 1

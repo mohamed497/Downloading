@@ -5,7 +5,8 @@ object GlobalConstants {
     const val PERMISION_REQUEST = 100
     const val PERIODIC_INTERVAL = 15L
     const val CHANNEL_ID = "ChannelId1"
-    const val BASE_URL = "https://drive.google.com"
+    const val BASE_URL = " https://file-examples-com.github.io"
+//    const val BASE_URL = "https://drive.google.com"
     const val MESSAGE_PROGRESS = "message_progress"
     const val PROGRESS_WORK = "Progress"
     const val PROGRESS_SERVICE = "Progress_service"
