@@ -15,7 +15,6 @@ import io.reactivex.rxjava3.core.Single
 import io.reactivex.rxjava3.schedulers.Schedulers
 import kotlin.math.pow
 
-
 class DownloadWorker(context: Context, workerParameters: WorkerParameters) :
     RxWorker(context, workerParameters) {
     val downloadRepo = DownloadingRepositoryImpl()
@@ -66,7 +65,6 @@ fun downloadFile(body: ResponseBody?) {
         if (currentTime > 1000 * timeCount) {
             download.currentFileSize = current.toInt()
             download.proggress = progress
-//            sendNotification(download)
             timeCount++
         }
         output.write(data, 0, count)
