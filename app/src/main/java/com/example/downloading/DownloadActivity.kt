@@ -12,7 +12,11 @@ import androidx.lifecycle.Observer
 import androidx.work.*
 import com.example.downloading.base.GlobalConstants.PERMISION_REQUEST
 import com.example.downloading.base.RunTimePermission
+import com.example.downloading.repository.DownloadingRepositoryImpl
 import com.example.downloading.service.DownloadService
+import com.example.downloading.worker.DownloadWorker
+import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers
+import io.reactivex.schedulers.Schedulers
 import kotlinx.android.synthetic.main.activity_download.*
 import java.util.concurrent.TimeUnit
 
@@ -23,6 +27,9 @@ class DownloadActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_download)
 
+//        val downloadRepo = DownloadingRepositoryImpl()
+//        downloadRepo.download().observeOn(AndroidSchedulers.mainThread())
+//        downloadRepo.download().subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread()).subscribe()
 
         btnStartDownloadWork.setOnClickListener { view ->
             when (view.id) {
