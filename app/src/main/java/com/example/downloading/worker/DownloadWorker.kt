@@ -6,66 +6,33 @@ import androidx.work.Worker
 import androidx.work.WorkerParameters
 import androidx.work.rxjava3.RxWorker
 import androidx.work.workDataOf
+import com.example.downloading.base.GlobalConstants
 import com.example.downloading.repository.DownloadingRepositoryImpl
 import okhttp3.ResponseBody
 import java.io.*
 import com.example.downloading.model.Download
-import com.example.downloading.service.DownloadNotificationService
 import io.reactivex.rxjava3.core.Single
 import io.reactivex.rxjava3.schedulers.Schedulers
-import kotlinx.coroutines.delay
 import kotlin.math.pow
 
-val downloadRepo = DownloadingRepositoryImpl()
-private var totalFileSize = 0
 
-
-//class ProgressWorker(context: Context, parameters: WorkerParameters) :
-//    Worker(context, parameters) {
-//
-//    companion object {
-//        const val Progress = "Progress"
-//        private const val delayDuration = 1L
-//    }
-
-//    override fun doWork(): Result {
-//        setProgressAsync(Data.Builder().putInt("progress", 0).build())
-//        Thread.sleep(1000)
-//        setProgressAsync(Data.Builder().putInt("progress", 50).build())
-//        Thread.sleep(1000)
-//        setProgressAsync(Data.Builder().putInt("progress", 100).build())
-//        val firstUpdate = workDataOf(Progress to 0)
-//        val lastUpdate = workDataOf(Progress to 100)
-//        setProgressAsync(firstUpdate)
-//        delay(delayDuration)
-//        setProgressAsync(lastUpdate)
-//        setProgress(firstUpdate)
-//        setProgress(lastUpdate)
-//        return Result.success()
-//    }
-//
-//}
 class DownloadWorker(context: Context, workerParameters: WorkerParameters) :
     RxWorker(context, workerParameters) {
-
-    companion object {
-        const val Progress = "Progress"
-        private const val delayDuration = 1L
-    }
+    val downloadRepo = DownloadingRepositoryImpl()
 
     override fun createWork(): Single<Result> {
         return Single.fromObservable(downloadRepo.download()).map { response ->
             downloadFile(response.body())
         }.subscribeOn(Schedulers.io())
-            .map { setProgressAsync(Data.Builder().putInt("progress", 0).build())
+            .map { setProgressAsync(Data.Builder().putInt(GlobalConstants.PROGRESS_WORK, 0).build())
                 Thread.sleep(1000)
-                setProgressAsync(Data.Builder().putInt("progress", 25).build())
+                setProgressAsync(Data.Builder().putInt(GlobalConstants.PROGRESS_WORK, 25).build())
                 Thread.sleep(1000)
-                setProgressAsync(Data.Builder().putInt("progress", 50).build())
+                setProgressAsync(Data.Builder().putInt(GlobalConstants.PROGRESS_WORK, 50).build())
                 Thread.sleep(1000)
-                setProgressAsync(Data.Builder().putInt("progress", 75).build())
+                setProgressAsync(Data.Builder().putInt(GlobalConstants.PROGRESS_WORK, 75).build())
                 Thread.sleep(1000)
-                setProgressAsync(Data.Builder().putInt("progress", 100).build())
+                setProgressAsync(Data.Builder().putInt(GlobalConstants.PROGRESS_WORK, 100).build())
 
                 Result.success() }
             .onErrorReturn { Result.failure() }
@@ -73,6 +40,7 @@ class DownloadWorker(context: Context, workerParameters: WorkerParameters) :
 }
 
 fun downloadFile(body: ResponseBody?) {
+    var totalFileSize = 0
     var count: Int
     val data = ByteArray(1024)
     val fileSize = body?.contentLength()
