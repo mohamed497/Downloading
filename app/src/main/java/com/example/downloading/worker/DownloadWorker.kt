@@ -35,6 +35,7 @@ class DownloadWorker(context: Context, workerParameters: WorkerParameters) :
     private val downloadRepo = DownloadingRepositoryImpl()
     private val notificationBuilder =
         NotificationCompat.Builder(applicationContext, NOTIFICATION_CHANNEL)
+
     override fun createWork(): Single<Result> {
         return Single.fromObservable(downloadRepo.download()).map { response ->
             saveFile(response.body())
@@ -45,10 +46,11 @@ class DownloadWorker(context: Context, workerParameters: WorkerParameters) :
             }
             .onErrorReturn { Result.failure() }
     }
+
     @SuppressLint("SdCardPath")
     fun saveFile(body: ResponseBody?) {
         createNotificationChannel()
-        displayNotification(DownloadModel("Please wait...", 0, 0,0))
+        displayNotification(DownloadModel("Please wait...", 0, 0, 0))
         val state = Environment.getExternalStorageState()
         if (Environment.MEDIA_MOUNTED != state) {
             return
@@ -57,32 +59,29 @@ class DownloadWorker(context: Context, workerParameters: WorkerParameters) :
         var count: Int
         val data = ByteArray(ARRAY_SIZE)
         val fileSize = body?.contentLength()
-        Log.d("fileSize Total",fileSize.toString())
-        Log.d(" Total",(fileSize?.div(1024)).toString())
 
         val input: InputStream = BufferedInputStream(body?.byteStream(), 1024 * 8)
-        val output: OutputStream = FileOutputStream("/sdcard/myfile_${System.currentTimeMillis()}.mp4")
+        val output: OutputStream =
+            FileOutputStream("/sdcard/myfile_${System.currentTimeMillis()}.mp4")
         var total = 0
         val startTime = System.currentTimeMillis()
         var timeCount = 1
         totalFileSize = (fileSize?.div(1024.0.pow(2.0)))?.toInt() ?: 0
-        Log.d(" totalFileSize",totalFileSize.toString())
 
         while (input.read(data).also { count = it } != -1) {
             total += count
             val current = (total / 1024.0.pow(2.0)).roundToInt().toDouble()
             val currentTime = System.currentTimeMillis() - startTime
-//            val download = DownloadModel()
-//            download.totalFileSize = totalFileSize
+
             if (currentTime > 1000 * timeCount) {
-//                download.currentFileSize = current.toInt()
-//                download.proggress = progress
                 val progress = ((total * 100) / (fileSize ?: 0L)).toInt()
 
-                Log.d("Download Proggress",progress.toString())
-
-                displayNotification(DownloadModel(message = "name",proggress = progress,currentFileSize = current.toInt(),
-                    totalFileSize = totalFileSize))
+                displayNotification(
+                    DownloadModel(
+                        message = "name", proggress = progress, currentFileSize = current.toInt(),
+                        totalFileSize = totalFileSize
+                    )
+                )
                 timeCount++
             }
             output.write(data, 0, count)
@@ -92,7 +91,8 @@ class DownloadWorker(context: Context, workerParameters: WorkerParameters) :
         input.close()
 
     }
-    private fun createNotificationChannel(){
+
+    private fun createNotificationChannel() {
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
             val channel = NotificationChannel(
                 NOTIFICATION_CHANNEL,
@@ -103,13 +103,22 @@ class DownloadWorker(context: Context, workerParameters: WorkerParameters) :
             notificationManager.createNotificationChannel(channel)
         }
     }
+
     @SuppressLint("RemoteViewLayout")
     private fun displayNotification(downloadModel: DownloadModel) {
         val remoteView = RemoteViews(applicationContext.packageName, R.layout.custom_notif)
         remoteView.setImageViewResource(R.id.iv_notif, R.drawable.ic_launcher_background)
-        remoteView.setTextViewText(R.id.tv_notif_progress, "${downloadModel.message} (${downloadModel.proggress}/${downloadModel.totalFileSize} complete)")
+        remoteView.setTextViewText(
+            R.id.tv_notif_progress,
+            "${downloadModel.message} (${downloadModel.proggress}/${downloadModel.totalFileSize} complete)"
+        )
         remoteView.setTextViewText(R.id.tv_notif_title, "Downloading Images")
-        remoteView.setProgressBar(R.id.pb_notif, downloadModel.totalFileSize, downloadModel.proggress, false)
+        remoteView.setProgressBar(
+            R.id.pb_notif,
+            downloadModel.totalFileSize,
+            downloadModel.proggress,
+            false
+        )
         notificationBuilder
             .setContent(remoteView)
             .setSmallIcon(R.drawable.ic_launcher_foreground)

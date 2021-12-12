@@ -53,7 +53,6 @@ class DownloadActivity : AppCompatActivity() {
 
     private fun StartDownloadingWorkManager() {
         task = setupWorkRequest()
-        // make view model - a2l size el function
         workManager.enqueue(task)
         workManager.getWorkInfoByIdLiveData(task.id)
             .observe(this@DownloadActivity, { work ->
