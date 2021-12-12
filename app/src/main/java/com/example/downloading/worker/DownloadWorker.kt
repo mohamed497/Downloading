@@ -1,77 +1,127 @@
 package com.example.downloading.worker
+
+import android.annotation.SuppressLint
+import android.app.NotificationChannel
+import android.app.NotificationManager
 import android.content.Context
 import android.os.Environment
+import android.util.Log
+import android.widget.RemoteViews
+import androidx.core.app.NotificationCompat
 import androidx.work.Data
-import androidx.work.Worker
 import androidx.work.WorkerParameters
 import androidx.work.rxjava3.RxWorker
-import androidx.work.workDataOf
-import com.example.downloading.base.GlobalConstants
+import com.example.downloading.R
 import com.example.downloading.repository.DownloadingRepositoryImpl
 import okhttp3.ResponseBody
 import java.io.*
-import com.example.downloading.model.Download
+import com.example.downloading.model.DownloadModel
 import io.reactivex.rxjava3.core.Single
 import io.reactivex.rxjava3.schedulers.Schedulers
 import kotlin.math.pow
+import kotlin.math.roundToInt
+
+
+const val ARRAY_SIZE = 1024
+
+private const val NOTIFICATION_ID: Int = 500
+private const val NOTIFICATION_CHANNEL: String = "Notification_C"
 
 class DownloadWorker(context: Context, workerParameters: WorkerParameters) :
     RxWorker(context, workerParameters) {
-    val downloadRepo = DownloadingRepositoryImpl()
 
+    private val notificationManager =
+        applicationContext.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+    private val downloadRepo = DownloadingRepositoryImpl()
+    private val notificationBuilder =
+        NotificationCompat.Builder(applicationContext, NOTIFICATION_CHANNEL)
     override fun createWork(): Single<Result> {
         return Single.fromObservable(downloadRepo.download()).map { response ->
-            downloadFile(response.body())
+            saveFile(response.body())
         }.subscribeOn(Schedulers.io())
-            .map { setProgressAsync(Data.Builder().putInt(GlobalConstants.PROGRESS_WORK, 0).build())
-                Thread.sleep(1000)
-                setProgressAsync(Data.Builder().putInt(GlobalConstants.PROGRESS_WORK, 25).build())
-                Thread.sleep(1000)
-                setProgressAsync(Data.Builder().putInt(GlobalConstants.PROGRESS_WORK, 50).build())
-                Thread.sleep(1000)
-                setProgressAsync(Data.Builder().putInt(GlobalConstants.PROGRESS_WORK, 75).build())
-                Thread.sleep(1000)
-                setProgressAsync(Data.Builder().putInt(GlobalConstants.PROGRESS_WORK, 100).build())
-
-                Result.success() }
+            .map {
+                notificationManager.cancel(NOTIFICATION_ID)
+                Result.success()
+            }
             .onErrorReturn { Result.failure() }
     }
-}
-
-fun downloadFile(body: ResponseBody?) {
-    var totalFileSize = 0
-    var count: Int
-    val data = ByteArray(1024)
-    val fileSize = body?.contentLength()
-    val bis: InputStream = BufferedInputStream(body?.byteStream(), 1024 * 8)
-//    val outputFile = File(
-//        Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS),
-//        "file.zip"
-//    )
-
-//    val output: OutputStream = FileOutputStream(outputFile)
-    val output: OutputStream = FileOutputStream("/sdcard/myfile_${System.currentTimeMillis()}.mp4")
-    var total = 0
-    val startTime = System.currentTimeMillis()
-    var timeCount = 1
-    while (bis.read(data).also { count = it } != -1) {
-        total += count
-        totalFileSize = (fileSize?.div(1024.0.pow(2.0)))?.toInt() ?: 0
-        val current = Math.round(total / 1024.0.pow(2.0)).toDouble()
-        val progress = (total * 100 / (fileSize ?: 0L)).toInt()
-        val currentTime = System.currentTimeMillis() - startTime
-        val download = Download()
-        download.totalFileSize = totalFileSize
-        if (currentTime > 1000 * timeCount) {
-            download.currentFileSize = current.toInt()
-            download.proggress = progress
-            timeCount++
+    @SuppressLint("SdCardPath")
+    fun saveFile(body: ResponseBody?) {
+        createNotificationChannel()
+        displayNotification(DownloadModel("Please wait...", 0, 0,0))
+        val state = Environment.getExternalStorageState()
+        if (Environment.MEDIA_MOUNTED != state) {
+            return
         }
-        output.write(data, 0, count)
+        var totalFileSize: Int
+        var count: Int
+        val data = ByteArray(ARRAY_SIZE)
+        val fileSize = body?.contentLength()
+        Log.d("fileSize Total",fileSize.toString())
+        Log.d(" Total",(fileSize?.div(1024)).toString())
+
+        val input: InputStream = BufferedInputStream(body?.byteStream(), 1024 * 8)
+        val output: OutputStream = FileOutputStream("/sdcard/myfile_${System.currentTimeMillis()}.mp4")
+        var total = 0
+        val startTime = System.currentTimeMillis()
+        var timeCount = 1
+        totalFileSize = (fileSize?.div(1024.0.pow(2.0)))?.toInt() ?: 0
+        Log.d(" totalFileSize",totalFileSize.toString())
+
+        while (input.read(data).also { count = it } != -1) {
+            total += count
+            val current = (total / 1024.0.pow(2.0)).roundToInt().toDouble()
+            val currentTime = System.currentTimeMillis() - startTime
+//            val download = DownloadModel()
+//            download.totalFileSize = totalFileSize
+            if (currentTime > 1000 * timeCount) {
+//                download.currentFileSize = current.toInt()
+//                download.proggress = progress
+                val progress = ((total * 100) / (fileSize ?: 0L)).toInt()
+
+                Log.d("Download Proggress",progress.toString())
+
+                displayNotification(DownloadModel(message = "name",proggress = progress,currentFileSize = current.toInt(),
+                    totalFileSize = totalFileSize))
+                timeCount++
+            }
+            output.write(data, 0, count)
+        }
+        output.flush()
+        output.close()
+        input.close()
+
+    }
+    private fun createNotificationChannel(){
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+            val channel = NotificationChannel(
+                NOTIFICATION_CHANNEL,
+                NOTIFICATION_CHANNEL,
+                NotificationManager.IMPORTANCE_DEFAULT
+            )
+            channel.enableVibration(false)
+            notificationManager.createNotificationChannel(channel)
+        }
+    }
+    @SuppressLint("RemoteViewLayout")
+    private fun displayNotification(downloadModel: DownloadModel) {
+        val remoteView = RemoteViews(applicationContext.packageName, R.layout.custom_notif)
+        remoteView.setImageViewResource(R.id.iv_notif, R.drawable.ic_launcher_background)
+        remoteView.setTextViewText(R.id.tv_notif_progress, "${downloadModel.message} (${downloadModel.proggress}/${downloadModel.totalFileSize} complete)")
+        remoteView.setTextViewText(R.id.tv_notif_title, "Downloading Images")
+        remoteView.setProgressBar(R.id.pb_notif, downloadModel.totalFileSize, downloadModel.proggress, false)
+        notificationBuilder
+            .setContent(remoteView)
+            .setSmallIcon(R.drawable.ic_launcher_foreground)
+        notificationManager.notify(NOTIFICATION_ID, notificationBuilder.build())
     }
 
-    output.flush()
-    output.close()
-    bis.close()
+
+    override fun onStopped() {
+        super.onStopped()
+        notificationManager.cancel(NOTIFICATION_ID)
+    }
 
 }
+
+

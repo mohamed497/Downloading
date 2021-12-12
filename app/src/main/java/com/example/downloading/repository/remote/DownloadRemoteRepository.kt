@@ -6,7 +6,7 @@ import okhttp3.ResponseBody
 import retrofit2.Response
 
 class DownloadRemoteRepository : DownloadingRepository {
-    private val downloadService = DownloadService.retrofitService
+    private val downloadService = DownloadRetrofitClient.retrofitService
     override fun download(): Observable<Response<ResponseBody>> {
         return downloadService.download()
     }

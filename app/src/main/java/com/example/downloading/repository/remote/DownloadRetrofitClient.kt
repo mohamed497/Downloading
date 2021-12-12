@@ -12,7 +12,7 @@ private val retrofit = Retrofit.Builder()
     .baseUrl(GlobalConstants.BASE_URL)
     .build()
 
-object DownloadService {
+object DownloadRetrofitClient {
     val retrofitService: DownloadRetrofitService by lazy {
         retrofit.create(DownloadRetrofitService::class.java)
     }

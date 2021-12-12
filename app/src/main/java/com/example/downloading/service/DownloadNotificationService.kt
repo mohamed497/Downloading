@@ -10,8 +10,6 @@ import com.example.downloading.base.GlobalConstants
 import android.app.NotificationManager
 import android.content.Context
 import android.util.Log
-import com.example.downloading.model.Download
-import androidx.core.app.NotificationManagerCompat
 import com.example.downloading.ui.activity.DownloadActivity
 
 

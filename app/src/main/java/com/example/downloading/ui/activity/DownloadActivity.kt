@@ -5,10 +5,8 @@ import android.content.Intent
 import android.os.Build
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.util.Log
 import android.view.View
 import android.widget.Toast
-import androidx.lifecycle.Observer
 import androidx.work.*
 import com.example.downloading.base.GlobalConstants.PERMISION_REQUEST
 import com.example.downloading.base.RunTimePermission
@@ -20,34 +18,31 @@ import java.util.concurrent.TimeUnit
 import com.example.downloading.base.GlobalConstants
 import androidx.work.WorkInfo
 import com.example.downloading.R
+import com.example.downloading.model.DownloadModel
 
 
 class DownloadActivity : AppCompatActivity() {
     private var runtimePermission: RunTimePermission = RunTimePermission(this)
     private val workManager = WorkManager.getInstance(this)
+    lateinit var task: WorkRequest
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_download)
-
-        startDownloadBtn()
+        saveDownloadBtn()
     }
-    private fun startDownloadBtn(){
+
+    private fun saveDownloadBtn() {
         btnStartDownloadWork.setOnClickListener { view ->
             when (view.id) {
                 R.id.btnStartDownloadWork -> {
                     runtimePermission.requestPermission(listOf(Manifest.permission.WRITE_EXTERNAL_STORAGE),
                         object : RunTimePermission.PermissionCallback {
                             override fun onGranted() {
-
-                                StartOneTimeWorkManager()
+                                StartDownloadingWorkManager()
                             }
 
                             override fun onDenied() {
-                                Toast.makeText(
-                                    this@DownloadActivity,
-                                    "Need Permission of Storage",
-                                    Toast.LENGTH_SHORT
-                                ).show()
+                                makeToast(getString(R.string.work_permission))
                             }
                         })
                 }
@@ -56,54 +51,28 @@ class DownloadActivity : AppCompatActivity() {
         }
     }
 
-    private fun StartOneTimeWorkManager() {
-
-        val constraints =
-            Constraints.Builder().setRequiredNetworkType(NetworkType.CONNECTED).build()
-        val task =
-            OneTimeWorkRequest.Builder(DownloadWorker::class.java).setConstraints(constraints)
-                .setBackoffCriteria(
-                    BackoffPolicy.LINEAR,
-                    OneTimeWorkRequest.DEFAULT_BACKOFF_DELAY_MILLIS,
-                    TimeUnit.MILLISECONDS
-                )
-                .build()
-
+    private fun StartDownloadingWorkManager() {
+        task = setupWorkRequest()
+        // make view model - a2l size el function
         workManager.enqueue(task)
         workManager.getWorkInfoByIdLiveData(task.id)
-            .observe(this@DownloadActivity, Observer { work ->
+            .observe(this@DownloadActivity, { work ->
                 work?.let {
                     if (work.state == WorkInfo.State.RUNNING) {
-                        val getProgress = work.progress.getInt(GlobalConstants.PROGRESS_WORK, 1)
-                        progress.progress = getProgress
-
-                        Log.d(DownloadActivity::javaClass.name, "RUNNING")
                         loaderShow(true)
-                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                            val serviceIntent = Intent(this,DownloadNotificationService::class.java)
-                                        serviceIntent.putExtra(GlobalConstants.PROGRESS_SERVICE,getProgress)
-                            startForegroundService(serviceIntent)
-                        }
-
                     } else
                         if (work.state.isFinished) {
-                            Log.d(DownloadActivity::javaClass.name, "DONE")
-                            Toast.makeText(
-                                this@DownloadActivity,
-                                getString(R.string.work_done),
-                                Toast.LENGTH_SHORT
-                            ).show()
+                            makeToast(getString(R.string.work_done))
                             loaderShow(false)
                         }
                 }
             })
     }
 
-
-    private fun loaderShow(flag: Boolean) {
-        when (flag) {
-            true -> llProgress.visibility = View.VISIBLE
-            false -> llProgress.visibility = View.GONE
+    private fun loaderShow(visibility: Boolean) {
+        when (visibility) {
+            true -> linearProgress.visibility = View.VISIBLE
+            false -> linearProgress.visibility = View.GONE
         }
     }
 
@@ -123,4 +92,19 @@ class DownloadActivity : AppCompatActivity() {
         super.onPause()
     }
 
+    fun makeToast(msg: String) {
+        Toast.makeText(this, msg, Toast.LENGTH_SHORT).show()
+    }
+
+    private fun setupWorkRequest(): WorkRequest {
+        val constraints =
+            Constraints.Builder().setRequiredNetworkType(NetworkType.CONNECTED).build()
+        return OneTimeWorkRequest.Builder(DownloadWorker::class.java).setConstraints(constraints)
+            .setBackoffCriteria(
+                BackoffPolicy.LINEAR,
+                OneTimeWorkRequest.DEFAULT_BACKOFF_DELAY_MILLIS,
+                TimeUnit.MILLISECONDS
+            )
+            .build()
+    }
 }
